@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agneesjs Blue Deck</title>
+    <style>
+        body { background-color: #0a0a0a; color: #00d4ff; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        h1 { text-shadow: 0 0 10px #00d4ff; letter-spacing: 2px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 90%; max-width: 400px; }
+        button { background: #111; border: 2px solid #00d4ff; color: #00d4ff; padding: 20px; font-size: 16px; border-radius: 15px; cursor: pointer; transition: 0.3s; box-shadow: 0 0 5px #00d4ff; font-weight: bold; }
+        button:active { background: #00d4ff; color: #000; box-shadow: 0 0 20px #00d4ff; transform: scale(0.95); }
+        .connect-btn { grid-column: span 2; background: #003344; border-color: #00ffff; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>AGNEESJS DECK</h1>
+    <div class="grid">
+        <button class="connect-btn" onclick="connectBLE()">🔗 POŁĄCZ BLUETOOTH</button>
+        <button onclick="sendBLE('MATRIX')">🧪 MATRIX</button>
+        <button onclick="sendBLE('LOCK')">🔒 LOCK</button>
+        <button onclick="sendBLE('CHROME')">🌐 CHROME</button>
+        <button onclick="sendBLE('OFF')">🌑 LED OFF</button>
+    </div>
+
+    <script>
+        let char;
+        async function connectBLE() {
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: [{ name: 'Agneesjs_Deck' }],
+                    optionalServices: ['6e400001-b5a3-f393-e0a9-e50e24dcca9e']
+                });
+                const server = await device.gatt.connect();
+                const service = await server.getPrimaryService('6e400001-b5a3-f393-e0a9-e50e24dcca9e');
+                char = await service.getCharacteristic('6e400002-b5a3-f393-e0a9-e50e24dcca9e');
+                alert("Połączono z ESP32!");
+            } catch (e) { alert("Błąd: " + e); }
+        }
+
+        async function sendBLE(msg) {
+            if (!char) { alert("Najpierw kliknij Połącz!"); return; }
+            const data = new TextEncoder().encode(msg + "\n");
+            await char.writeValue(data);
+        }
+    </script>
+</body>
+</html>
